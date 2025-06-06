@@ -143,23 +143,6 @@ sudo make uninstall
 make status
 ```
 
-## Code Structure Explanation
-
-### Key Functions
-
-1. **keylogger_init()**: Module initialization
-   - Registers keyboard interrupt handler
-   - Sets up initial state
-
-2. **keyboard_irq_handler()**: Main interrupt handler
-   - Reads scan codes from keyboard
-   - Logs keystrokes
-   - Checks for Konami Code
-
-3. **keylogger_exit()**: Module cleanup
-   - Unregisters interrupt handler
-   - Frees resources
-
 ## References
 
 - [Linux Kernel Module Programming Guide](https://tldp.org/LDP/lkmpg/2.6/html/)
