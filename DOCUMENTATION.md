@@ -66,7 +66,7 @@ static void display_konami_ascii_art(void)
 2. **Runtime Operation**
    - Responds to hardware interrupts
    - Processes data
-   - Communicates with user space (via logs)
+   - Logs
 
 3. **Module Unloading** (`module_exit`)
    - Unregisters interrupt handlers
@@ -75,31 +75,21 @@ static void display_konami_ascii_art(void)
 
 ### Interrupt Handling in Linux
 
-Linux uses a sophisticated interrupt handling system:
+Linux uses the following interrupt handling system:
 
 - **Hardware generates interrupt** when key is pressed
 - **CPU saves context** and jumps to interrupt handler
 - **Kernel calls registered handler** (our function)
-- **Handler processes the interrupt** quickly
+- **Handler processes the interrupt**
 - **Normal execution resumes**
 
-### Memory Management
+### Considerations
 
-Kernel modules operate in kernel space with special considerations:
+The following was considered when writing this keylogger:
 
-- **No standard library**: Use kernel-specific functions (printk vs printf)
+- **Kernel-specific functions**: printk vs printf, kmalloc/kfree vs malloc/free
 - **Limited stack space**: Keep local variables minimal
 - **Atomic context**: Interrupt handlers cannot sleep or block
-- **Memory allocation**: Use kmalloc/kfree instead of malloc/free
-
-### Security Implications
-
-This keylogger demonstrates several important security concepts:
-
-1. **Kernel-level access**: Can intercept all input before user-space applications
-2. **Hardware-level interception**: Bypasses software-based security measures
-3. **Stealth operation**: Difficult to detect from user space
-4. **System stability**: Improper kernel code can crash the entire system
 
 ## Setup and Usage
 
@@ -155,19 +145,6 @@ make status
 
 ## Code Structure Explanation
 
-### Header Files
-- `linux/module.h`: Core module functionality
-- `linux/interrupt.h`: Interrupt handling
-- `linux/keyboard.h`: Keyboard-specific definitions
-- `asm/io.h`: Low-level I/O operations (inb/outb)
-
-### Module Metadata
-```c
-MODULE_LICENSE("GPL");
-MODULE_AUTHOR("BAW Project Team");
-MODULE_DESCRIPTION("Educational keylogger with Konami Code easter egg");
-```
-
 ### Key Functions
 
 1. **keylogger_init()**: Module initialization
@@ -183,81 +160,9 @@ MODULE_DESCRIPTION("Educational keylogger with Konami Code easter egg");
    - Unregisters interrupt handler
    - Frees resources
 
-## Educational Value
-
-This project demonstrates several important concepts:
-
-### Linux Kernel Programming
-- Module structure and lifecycle
-- Interrupt handling mechanisms
-- Hardware I/O operations
-- Kernel logging and debugging
-
-### System Security
-- Kernel-level attack vectors
-- Hardware-based monitoring
-- Detection and prevention challenges
-
-### Low-Level Programming
-- Direct hardware access
-- Scan code processing
-- Timer programming
-- Memory management in kernel space
-
-## Safety Considerations
-
-⚠️ **Important Safety Notes**:
-
-1. **Educational Use Only**: This code is for learning purposes
-2. **System Stability**: Kernel modules can crash the system if buggy
-3. **Data Loss Risk**: Always save work before testing
-4. **Legal Compliance**: Only use on systems you own or have permission to test
-5. **Privacy Concerns**: Real keyloggers violate privacy and may be illegal
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Module won't load**:
-   - Check kernel headers are installed
-   - Verify you have root privileges
-   - Check dmesg for error messages
-
-2. **No keyboard input logged**:
-   - Verify module is loaded (`lsmod | grep keylogger`)
-   - Check if using USB keyboard (may need different approach)
-   - Ensure interrupt sharing is working
-
-3. **Compilation errors**:
-   - Update kernel headers
-   - Check gcc version compatibility
-   - Verify Makefile paths
-
-### Debugging Tips
-
-1. **Use dmesg**: `dmesg | grep -i keylogger`
-2. **Check module info**: `modinfo keylogger.ko`
-3. **Monitor interrupts**: `cat /proc/interrupts | grep keyboard`
-4. **Verify IRQ**: `cat /proc/interrupts | grep "1:"`
-
-## Further Development
-
-Potential enhancements for learning:
-
-1. **File Output**: Write logs to a file instead of kernel buffer
-2. **Network Transmission**: Send data over network
-3. **Encryption**: Encrypt logged data
-4. **Stealth Features**: Hide module from lsmod
-5. **USB Keyboard Support**: Handle modern USB keyboards
-6. **User-Space Communication**: Create device file for communication
-
 ## References
 
 - [Linux Kernel Module Programming Guide](https://tldp.org/LDP/lkmpg/2.6/html/)
 - [Linux Device Drivers (O'Reilly)](https://lwn.net/Kernel/LDD3/)
 - [Kernel.org Documentation](https://www.kernel.org/doc/)
 - [Linux Interrupt Handling](https://www.kernel.org/doc/html/latest/core-api/genericirq.html)
-
-## License
-
-This project is released under the GPL license for educational purposes only.

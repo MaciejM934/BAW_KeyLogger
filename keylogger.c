@@ -36,7 +36,7 @@ static const char *konami_ascii_art =
 "╔══════════════════════════════════════════════════════════════════════════════╗\n"
 "║                          KONAMI CODE ACTIVATED!                              ║\n"
 "║                                                                              ║\n"
-"║  [ASCII ART PLACEHOLDER - REPLACE WITH YOUR CUSTOM ART]                      ║\n"
+"║  [ASCII ART PLACEHOLDER]                                                     ║\n"
 "║                                                                              ║\n"
 "║  You have successfully entered the legendary Konami Code!                    ║\n"
 "║  Sequence: ↑↑↓↓←→←→ba                                                        ║\n"

