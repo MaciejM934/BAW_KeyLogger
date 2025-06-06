@@ -2,13 +2,12 @@
 
 ## Overview
 
-This project implements a Linux kernel module that demonstrates basic keylogging functionality for educational purposes. The module intercepts keyboard interrupts, logs keystrokes, and includes an easter egg that triggers when the famous Konami Code is entered.
+This project implements a Linux kernel module that demonstrates basic keylogging functionality for educational purposes. The module intercepts keyboard interrupts, logs keystrokes, and includes an easter egg that triggers when the Konami Code is entered.
 
 ## Features
 
 - **Keystroke Logging**: Captures all keyboard input and logs it to the kernel message buffer
-- **Konami Code Detection**: Detects the sequence ↑↑↓↓←→←→BA and plays a victory melody
-- **PC Speaker Integration**: Uses the system beeper to play sounds
+- **Konami Code Detection**: Detects the sequence ↑↑↓↓←→←→ba and outputs a special log message
 - **Educational Focus**: Heavily commented code explaining Linux kernel driver concepts
 
 ## Technical Architecture
@@ -49,13 +48,11 @@ static void check_konami_code(unsigned char scan_code)
 - Resets on incorrect input but handles overlapping sequences
 - Triggers melody playback on completion
 
-#### 4. PC Speaker Control
+#### 4. Easter Egg Display
 ```c
-static void beep(unsigned int frequency, unsigned int duration)
+static void display_konami_ascii_art(void)
 ```
-- Programs the 8253/8254 timer chip to generate specific frequencies
-- Controls the PC speaker through I/O ports 0x61, 0x43, and 0x42
-- Plays a victory melody when Konami Code is detected
+- Outputs the easter egg to kernel log
 
 ## How Linux Kernel Drivers Work
 
@@ -115,13 +112,7 @@ This keylogger demonstrates several important security concepts:
 ### Installation on Ubuntu/Debian
 ```bash
 sudo apt update
-sudo apt install build-essential linux-headers-$(uname -r)
-```
-
-### Installation on CentOS/RHEL/Fedora
-```bash
-sudo yum groupinstall "Development Tools"
-sudo yum install kernel-devel kernel-headers
+sudo apt install build-essential gcc make linux-headers-$(uname -r)
 ```
 
 ### Building the Module
@@ -149,9 +140,8 @@ make log
 ### Testing the Keylogger
 
 1. **Type some keys** - they should appear in kernel logs
-2. **Try the Konami Code**: ↑↑↓↓←→←→BA
-3. **Listen for the victory melody** when code is completed
-4. **Monitor logs**: `dmesg | grep KeyLogger`
+2. **Try the Konami Code**: ↑↑↓↓←→←→ba
+3. **Monitor logs**: `dmesg | grep KeyLogger` or `watch 'dmesg | grep KeyLogger | tail -15'`
 
 ### Unloading the Module
 

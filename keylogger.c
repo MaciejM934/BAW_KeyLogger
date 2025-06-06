@@ -7,7 +7,7 @@
  * Features:
  * - Logs all keyboard input to kernel log (dmesg)
  * - Detects Konami Code sequence (Up, Up, Down, Down, Left, Right, Left, Right, B, A)
- * - Plays a melody when Konami Code is detected
+ * - Displays ASCII art when Konami Code is detected
  * 
  * Author: BAW Project
  * License: GPL
@@ -19,25 +19,31 @@
 #include <linux/interrupt.h>    // Required for interrupt handling
 #include <linux/keyboard.h>     // Keyboard notification chain
 #include <linux/input.h>        // Input subsystem definitions
-#include <linux/timer.h>        // Timer functionality for beeper
-#include <linux/kmod.h>         // For call_usermodehelper
-#include <asm/io.h>             // For inb/outb functions (beeper control)
+#include <asm/io.h>             // For inb/outb functions (keyboard I/O)
 
 // Module information
 MODULE_LICENSE("GPL");
-MODULE_AUTHOR("BAW Project Team");
+MODULE_AUTHOR("Anton Tustanowski, Maciej Mrowiec, Paweł Kosiorkiewicz");
 MODULE_DESCRIPTION("Educational keylogger with Konami Code easter egg");
 MODULE_VERSION("1.0");
 
 // Keyboard IRQ number (typically IRQ 1 for PS/2 keyboard)
 #define KEYBOARD_IRQ 1
 
-// PC Speaker (beeper) I/O ports
-#define SPEAKER_PORT 0x61
-#define TIMER_PORT 0x43
-#define TIMER_DATA_PORT 0x42
+// ASCII Art for Konami Code easter egg
+// TODO: Replace this placeholder with your custom ASCII art
+static const char *konami_ascii_art = 
+"╔══════════════════════════════════════════════════════════════════════════════╗\n"
+"║                          KONAMI CODE ACTIVATED!                              ║\n"
+"║                                                                              ║\n"
+"║  [ASCII ART PLACEHOLDER - REPLACE WITH YOUR CUSTOM ART]                      ║\n"
+"║                                                                              ║\n"
+"║  You have successfully entered the legendary Konami Code!                    ║\n"
+"║  Sequence: ↑↑↓↓←→←→ba                                                        ║\n"
+"║                                                                              ║\n"
+"╚══════════════════════════════════════════════════════════════════════════════╝\n";
 
-// Konami Code sequence: Up, Up, Down, Down, Left, Right, Left, Right, B, A
+// Konami Code sequence: ↑↑↓↓←→←→ba
 // Using scan codes for these keys
 static int konami_sequence[] = {72, 72, 80, 80, 75, 77, 75, 77, 48, 30}; // Scan codes
 static int konami_index = 0;  // Current position in Konami sequence
@@ -82,61 +88,18 @@ static char key_map[128] = {
 };
 
 /*
- * Function to play a simple beep using the PC speaker
- * frequency: frequency in Hz
- * duration: duration in milliseconds
+ * Display the Konami Code success ASCII art
+ * This function outputs the ASCII art to the kernel log
  */
-static void beep(unsigned int frequency, unsigned int duration)
+static void display_konami_ascii_art(void)
 {
-    unsigned int count;
-    unsigned char tmp;
+    printk(KERN_ALERT "KeyLogger: KONAMI CODE DETECTED!\n");
     
-    if (frequency == 0) {
-        // Turn off speaker
-        tmp = inb(SPEAKER_PORT);
-        outb(tmp & 0xFC, SPEAKER_PORT);
-        return;
-    }
+    // Print the ASCII art line by line to kernel log
+    // Note: printk has limitations on string length, so we print it as one block
+    printk(KERN_INFO "%s", konami_ascii_art);
     
-    // Calculate timer count for frequency
-    count = 1193180 / frequency;
-    
-    // Configure timer
-    outb(0xB6, TIMER_PORT);
-    outb(count & 0xFF, TIMER_DATA_PORT);
-    outb((count >> 8) & 0xFF, TIMER_DATA_PORT);
-    
-    // Turn on speaker
-    tmp = inb(SPEAKER_PORT);
-    outb(tmp | 0x03, SPEAKER_PORT);
-    
-    // Simple delay (not precise, for demonstration only)
-    mdelay(duration);
-    
-    // Turn off speaker
-    tmp = inb(SPEAKER_PORT);
-    outb(tmp & 0xFC, SPEAKER_PORT);
-}
-
-/*
- * Play the Konami Code success melody
- * This plays a simple ascending tone sequence
- */
-static void play_konami_melody(void)
-{
-    printk(KERN_INFO "KeyLogger: 🎵 KONAMI CODE ACTIVATED! Playing victory melody! 🎵\n");
-    
-    // Play a simple melody: C, E, G, C (higher octave)
-    beep(523, 200);  // C5
-    msleep(50);
-    beep(659, 200);  // E5
-    msleep(50);
-    beep(784, 200);  // G5
-    msleep(50);
-    beep(1047, 400); // C6
-    msleep(100);
-    
-    printk(KERN_INFO "KeyLogger: Konami Code melody completed!\n");
+    printk(KERN_INFO "KeyLogger: Konami Code easter egg activated!\n");
 }
 
 /*
@@ -152,8 +115,7 @@ static void check_konami_code(unsigned char scan_code)
         
         // Check if we completed the sequence
         if (konami_index >= konami_length) {
-            printk(KERN_ALERT "KeyLogger: 🎉 KONAMI CODE DETECTED! 🎉\n");
-            play_konami_melody();
+            display_konami_ascii_art();
             konami_index = 0; // Reset for next attempt
         }
     } else {
@@ -197,8 +159,6 @@ static irqreturn_t keyboard_irq_handler(int irq, void *dev_id)
     }
     
     // Return IRQ_NONE to allow other handlers to process this interrupt
-    // In a real keylogger, you might want to return IRQ_HANDLED to prevent
-    // normal keyboard processing, but that would break the system
     return IRQ_NONE;
 }
 
@@ -228,6 +188,7 @@ static int __init keylogger_init(void)
     
     printk(KERN_INFO "KeyLogger: Successfully registered keyboard interrupt handler\n");
     printk(KERN_INFO "KeyLogger: Monitoring for Konami Code: ↑↑↓↓←→←→BA\n");
+    printk(KERN_INFO "KeyLogger: ASCII art easter egg ready!\n");
     printk(KERN_INFO "KeyLogger: Module loaded successfully!\n");
     
     return 0; // Success
